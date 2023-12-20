@@ -7,6 +7,8 @@ public class Terrain {
     // instance variables
     private String terrainName;
     private String neededItem;
+    private String treasure;
+    private boolean searched;
 
     /**
      * Sets the class member variables
@@ -17,6 +19,7 @@ public class Terrain {
     public Terrain(String name, String item) {
         terrainName = name;
         neededItem = item.toLowerCase();
+        this.treasure = treasure;
     }
 
     // accessors
@@ -27,6 +30,13 @@ public class Terrain {
     public String getNeededItem() {
         return neededItem;
     }
+    public String getTreasure() {
+        return treasure;
+    }
+    public boolean isSearched() {
+        return searched;
+    }
+    public void setSearched(){searched = true;}
 
     /**
      * Guards against a hunter crossing the zone without the proper item.

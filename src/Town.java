@@ -116,7 +116,7 @@ public class Town {
                 printMessage += Colors.RED + "That'll teach you to go lookin' fer trouble in MY town! Now pay up!" + Colors.RESET;
                 printMessage += Colors.RED + "\nYou lost the brawl and pay " + goldDiff + " gold." + Colors.RESET;
                 hunter.changeGold(-goldDiff);
-                gameOver = hunter.changeGold(-goldDiff);
+                hunter.changeGold(-goldDiff);
             }
         }
     }
@@ -145,6 +145,26 @@ public class Town {
         } else {
             return new Terrain("Marsh", "Boots");
         }
+    }
+
+    /**
+     * Determines whether a used item has broken.
+     *
+     * @return true if the item broke.
+     */
+    private String treasureRandom(){
+        String treasure = "";
+        int rnd = (int)(Math.random() * 4) + 1;
+        if(rnd == 1){
+            treasure = "crown";
+        } else if (rnd == 2){
+            treasure = "dust";
+        } else if (rnd == 3){
+            treasure = "gem";
+        } else {
+            treasure = "trophy";
+        }
+        return treasure;
     }
 
     /**
