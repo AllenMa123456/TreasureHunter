@@ -109,6 +109,11 @@ public class Hunter {
         return false;
     }
 
+    public void addItemTest(String item){
+        int idx = emptyPositionInKit();
+        kit[idx] = item;
+    }
+
 
     /**
      * Checks if the kit Array has the specified item.
