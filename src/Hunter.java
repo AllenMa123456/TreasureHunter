@@ -8,10 +8,8 @@ public class Hunter {
     //instance variables
     private String hunterName;
     private String[] kit;
-    private String[] treasure;
-    private int gold;
-    private int treasureCount;
-    public boolean gameOver;
+    private String[] collectionOfTreasure;
+    private static int gold;
 
     /**
      * The base constructor of a Hunter assigns the name to the hunter and an empty kit.
@@ -21,20 +19,21 @@ public class Hunter {
      */
     public Hunter(String hunterName, int startingGold) {
         this.hunterName = hunterName;
-        kit = new String[6]; // only 6 possible items can be stored in kit
-        treasure = new String[3];
-        treasureCount = 0;
+        if (TreasureHunter.SAMURAIMODE){
+            kit = new String[8];
+        } else {
+            kit = new String[6]; // only 6 possible items can be stored in kit
+        }
+        collectionOfTreasure = new String[3];
         gold = startingGold;
-        gameOver = false;
     }
 
     //Accessors
     public String getHunterName() {
-
         return hunterName;
     }
-    public int getTreasureCount() {
-        return treasureCount;
+    public static int getGold(){
+        return gold;
     }
 
     /**
@@ -44,10 +43,6 @@ public class Hunter {
      */
     public void changeGold(int modifier) {
         gold += modifier;
-        if (gold < 0) {
-            gold = 0;
-            gameOver = true;
-        }
     }
 
     /**
@@ -58,6 +53,10 @@ public class Hunter {
      * @return true if the item is successfully bought.
      */
     public boolean buyItem(String item, int costOfItem) {
+        if (TreasureHunter.SAMURAIMODE && !(hasItemInKit(item))){
+            addItem(item);
+            return true;
+        }
         if (costOfItem == 0 || gold < costOfItem || hasItemInKit(item)) {
             return false;
         }
@@ -65,19 +64,6 @@ public class Hunter {
         gold -= costOfItem;
         addItem(item);
         return true;
-    }
-    public boolean addTreasure(String treasure) {
-        if (!hasTreasure(treasure)) {
-            int idx = emptyPosition(2);
-            this.treasure[idx] = treasure;
-            treasureCount++;
-            if(treasureCount == 3) {
-                gameOver = true;
-                System.out.println("You collected the treasure so you won!");
-            }
-            return true;
-        }
-        return false;
     }
 
     /**
@@ -121,20 +107,41 @@ public class Hunter {
      */
     private boolean addItem(String item) {
         if (!hasItemInKit(item)) {
-            int idx = emptyPosition(1);
+            int idx = emptyPositionInKit();
             kit[idx] = item;
             return true;
         }
 
         return false;
     }
-    public void addItemTest(String item){
-        int idx = emptyPosition(1);
-        kit[idx] = item;
+    public boolean addTreasure(String item) {
+        if (!hasItemInTreasure(item)) {
+            int idx = emptyPositionInTreasure();
+            collectionOfTreasure[idx] = item;
+            return true;
+        }
+
+        return false;
     }
+    public boolean hasItemInTreasure(String item) {
+        for (String tmpItem : collectionOfTreasure) {
+            if (item.equals(tmpItem)) {
+                // early return
+                return true;
+            }
+        }
 
+        return false;
+    }
+    private int emptyPositionInTreasure() {
+        for (int i = 0; i < collectionOfTreasure.length; i++) {
+            if (collectionOfTreasure[i] == null) {
+                return i;
+            }
+        }
 
-
+        return -1;
+    }
     /**
      * Checks if the kit Array has the specified item.
      *
@@ -152,15 +159,6 @@ public class Hunter {
         return false;
     }
 
-    public boolean hasTreasure(String treasure) {
-        for (String tmpTreasure: this.treasure) {
-            if (treasure.equals(tmpTreasure)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     /**
      * Returns a printable representation of the inventory, which
      * is a list of the items in kit, with a space between each item.
@@ -168,34 +166,45 @@ public class Hunter {
      * @return The printable String representation of the inventory.
      */
     public String getInventory() {
-        String inventory = "";
+        String printableKit = "" + Colors.PURPLE;
         String space = " ";
 
         for (String item : kit) {
             if (item != null) {
-                inventory += Colors.PURPLE + item + Colors.RESET + space;
+                printableKit += item + space;
             }
         }
-        if(noTreasure()){
-            inventory += "\nTreasures found: none ";
-        } else {
-            inventory += "\nTreasures found: ";
-        }
-        for (String prize : treasure){
-            if (prize != null){
-                inventory += Colors.YELLOW + prize + Colors.RESET + space;
+        printableKit += Colors.RESET;
+
+        return printableKit;
+    }
+    public String getTreasures() {
+        String printableTreasure = "" + Colors.YELLOW;
+        String space = " ";
+
+        for (String item : collectionOfTreasure) {
+            if (item != null) {
+                printableTreasure += item + space;
             }
         }
-        return inventory;
+        printableTreasure += Colors.RESET;
+
+        return printableTreasure;
     }
 
     /**
      * @return A string representation of the hunter.
      */
     public String toString() {
-        String str = hunterName + " has " + Colors.YELLOW + gold + Colors.RESET + " gold";
+        String str = Colors.YELLOW + hunterName + " has " + gold + " gold" + Colors.RESET;
         if (!kitIsEmpty()) {
             str += " and " + getInventory();
+        }
+        str += "\nTreasure Found:";
+        if (!treasureCollectionIsEmpty()) {
+            str += " " + getTreasures();
+        } else {
+            str += " none";
         }
         return str;
     }
@@ -229,15 +238,25 @@ public class Hunter {
                 return false;
             }
         }
+
         return true;
     }
-
-    private boolean noTreasure() {
-        for (String string : treasure) {
+    public boolean treasureCollectionIsEmpty() {
+        for (String string : collectionOfTreasure) {
             if (string != null) {
                 return false;
             }
         }
+
+        return true;
+    }
+    public boolean treasureCollectionIsFull() {
+        for (String string : collectionOfTreasure) {
+            if (string == null) {
+                return false;
+            }
+        }
+
         return true;
     }
 
@@ -246,23 +265,13 @@ public class Hunter {
      *
      * @return index of empty index, or -1 if not found.
      */
-    private int emptyPosition(int choice) {
-        if(choice == 1){
-            for (int i = 0; i < kit.length; i++) {
-                if (kit[i] == null) {
-                    return i;
-                }
+    private int emptyPositionInKit() {
+        for (int i = 0; i < kit.length; i++) {
+            if (kit[i] == null) {
+                return i;
             }
-            return -1;
         }
-        if(choice == 2){
-            for(int i = 0; i < treasure.length; i++){
-                if (treasure[i] == null){
-                    return i;
-                }
-            }
-            return -1;
-        }
+
         return -1;
     }
 }
