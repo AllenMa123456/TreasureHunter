@@ -132,10 +132,7 @@ public class Hunter {
         int idx = emptyPosition(1);
         kit[idx] = item;
     }
-    public void addItemTest(String item){
-        int idx = emptyPositionInKit();
-        kit[idx] = item;
-    }
+
 
 
     /**

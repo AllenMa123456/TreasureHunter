@@ -13,6 +13,8 @@ public class Town {
     private boolean toughTown;
 
     private boolean gameOver;
+    public boolean easyMode;
+    private double chance;
     /**
      * The Town Constructor takes in a shop and the surrounding terrain, but leaves the hunter as null until one arrives.
      *
@@ -30,6 +32,9 @@ public class Town {
         printMessage = "";
 
         // higher toughness = more likely to be a tough town
+        if (toughness == 0.2){
+            easyMode = true;
+        }
         toughTown = (Math.random() < toughness);
         gameOver = false;
     }
@@ -108,7 +113,10 @@ public class Town {
         } else {
             printMessage = Colors.RED + "You want trouble, stranger!  You got it!\nOof! Umph! Ow!\n" + Colors.RESET;
             int goldDiff = (int) (Math.random() * 10) + 1;
-            if (Math.random() > noTroubleChance) {
+            if (easyMode) {
+                chance = Math.random() + 0.4;
+            }
+            if (chance > noTroubleChance) {
                 printMessage += Colors.RED + "Okay, stranger! You proved yer mettle. Here, take my gold." + Colors.RESET;
                 printMessage += Colors.RED + "\nYou won the brawl and receive " + Colors.YELLOW + goldDiff + Colors.RESET + " gold." + Colors.RESET;
                 hunter.changeGold(goldDiff);
@@ -173,6 +181,9 @@ public class Town {
      * @return true if the item broke.
      */
     private boolean checkItemBreak() {
+        if (easyMode) {
+            return false;
+        }
         double rand = Math.random();
         return (rand < 0.5);
     }
