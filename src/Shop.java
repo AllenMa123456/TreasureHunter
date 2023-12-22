@@ -5,6 +5,7 @@ import java.util.Scanner;
  * The Shop class also acts as a go between for the Hunter's buyItem() method. <p>
  * This code has been adapted from Ivan Turner's original program -- thank you Mr. Turner!
  */
+
 public class Shop {
     // constants
     private static final int WATER_COST = 2;

@@ -4,6 +4,7 @@
  * This code has been adapted from Ivan Turner's original program -- thank you Mr. Turner!
  */
 
+
 public class Town {
     // instance variables
     private Hunter hunter;
