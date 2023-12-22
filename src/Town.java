@@ -11,17 +11,18 @@ public class Town {
     private Terrain terrain;
     private String printMessage;
     private boolean toughTown;
+    public static String treasure;
+    private boolean isSearched;
+    private boolean isDug;
+    private boolean easy;
 
-    private boolean gameOver;
-    public boolean easyMode;
-    private double chance;
     /**
      * The Town Constructor takes in a shop and the surrounding terrain, but leaves the hunter as null until one arrives.
      *
      * @param shop The town's shoppe.
      * @param toughness The surrounding terrain.
      */
-    public Town(Shop shop, double toughness) {
+    public Town(Shop shop, double toughness, boolean easy) {
         this.shop = shop;
         this.terrain = getNewTerrain();
 
@@ -32,21 +33,24 @@ public class Town {
         printMessage = "";
 
         // higher toughness = more likely to be a tough town
-        if (toughness == 0.2){
-            easyMode = true;
-        }
         toughTown = (Math.random() < toughness);
-        gameOver = false;
+
+        double rndForTown = Math.random();
+        if (rndForTown < .2) {
+            treasure = "dust";
+        } else if (rndForTown < .4) {
+            treasure = "trophy";
+        } else if (rndForTown < .6) {
+            treasure = "crown";
+        } else {
+            treasure = "gem";
+        }
     }
 
     public String getLatestNews() {
-
         return printMessage;
     }
 
-    public boolean isGameOver() {
-        return gameOver;
-    }
     /**
      * Assigns an object to the Hunter in town.
      *
@@ -57,9 +61,9 @@ public class Town {
         printMessage = "Welcome to town, " + hunter.getHunterName() + ".";
 
         if (toughTown) {
-            printMessage += Colors.CYAN + "\nIt's pretty rough around here, so watch yourself." + Colors.RESET;
+            printMessage += "\nIt's pretty rough around here, so watch yourself.";
         } else {
-            printMessage += Colors.CYAN + "\nWe're just a sleepy little town with mild mannered folk." + Colors.RESET;
+            printMessage += "\nWe're just a sleepy little town with mild mannered folk.";
         }
     }
 
@@ -70,12 +74,17 @@ public class Town {
      */
     public boolean leaveTown() {
         boolean canLeaveTown = terrain.canCrossTerrain(hunter);
-        if (canLeaveTown) {
+        if (canLeaveTown && easy) {
+            String item = terrain.getNeededItem();
+            printMessage = "You used your " + item + " to cross the " + terrain.getTerrainName() + ".";
+
+            return true;
+        } else if (canLeaveTown) {
             String item = terrain.getNeededItem();
             printMessage = "You used your " + item + " to cross the " + terrain.getTerrainName() + ".";
             if (checkItemBreak()) {
                 hunter.removeItemFromKit(item);
-                printMessage += "\nUnfortunately, you lost your " + item;
+                printMessage += "\nUnfortunately, your " + item + " got stolen by a the holly jolly Local.";
             }
 
             return true;
@@ -91,8 +100,14 @@ public class Town {
      * @param choice If the user wants to buy or sell items at the shop.
      */
     public void enterShop(String choice) {
+        printMessage = "Welcome to town, " + hunter.getHunterName() + ".";
+
+        if (toughTown) {
+            printMessage += "\nIt's pretty rough around here, so watch yourself.";
+        } else {
+            printMessage += "\nWe're just a sleepy little town with mild mannered folk.";
+        }
         shop.enter(hunter, choice);
-        printMessage = "You left the shop";
     }
 
     /**
@@ -107,30 +122,52 @@ public class Town {
         } else {
             noTroubleChance = 0.33;
         }
-
         if (Math.random() > noTroubleChance) {
             printMessage = "You couldn't find any trouble";
         } else {
             printMessage = Colors.RED + "You want trouble, stranger!  You got it!\nOof! Umph! Ow!\n" + Colors.RESET;
             int goldDiff = (int) (Math.random() * 10) + 1;
-            if (easyMode) {
-                chance = Math.random() + 0.4;
-            }
-            if (chance > noTroubleChance) {
-                printMessage += Colors.RED + "Okay, stranger! You proved yer mettle. Here, take my gold." + Colors.RESET;
-                printMessage += Colors.RED + "\nYou won the brawl and receive " + Colors.YELLOW + goldDiff + Colors.RESET + " gold." + Colors.RESET;
+            if (TreasureHunter.SAMURAIMODE){
+                printMessage += Colors.RED + "君の剣がひとを殺された. また我らの日本の大勝利." + Colors.RESET;
+                printMessage += "\nGlory to the Shogun!";
+                hunter.changeGold(goldDiff);
+            } else if (Math.random() > noTroubleChance) {
+                printMessage += "Okay, stranger! You proved yer mettle. Here, take my gold.";
+                printMessage += Colors.YELLOW + "\nYou won the brawl and receive " + goldDiff + " gold." + Colors.RESET;
                 hunter.changeGold(goldDiff);
             } else {
                 printMessage += Colors.RED + "That'll teach you to go lookin' fer trouble in MY town! Now pay up!" + Colors.RESET;
                 printMessage += Colors.RED + "\nYou lost the brawl and pay " + goldDiff + " gold." + Colors.RESET;
                 hunter.changeGold(-goldDiff);
+            }
+        }
+    }
+    public void easyLookForTrouble() {
+        double noTroubleChance;
+        if (toughTown) {
+            noTroubleChance = 0.66;
+        } else {
+            noTroubleChance = 0.33;
+        }
+        if (Math.random() > noTroubleChance) {
+            printMessage = "You couldn't find any trouble";
+        } else {
+            printMessage = Colors.RED + "You want trouble, stranger!  You got it!\nOof! Umph! Ow!\n" + Colors.RESET;
+            int goldDiff = (int) (Math.random() * 10) + 1;
+            if (Math.random() > .2) {
+                printMessage += "Okay, stranger! You proved yer mettle. Here, take my gold.";
+                printMessage += Colors.YELLOW + "\nYou won the brawl and receive " + goldDiff + " gold." + Colors.RESET;
+                hunter.changeGold(goldDiff);
+            } else {
+                printMessage += Colors.RED + "That'll teach you to go lookin' fer trouble in MY town! Now pay up!" + Colors.RESET;
+                printMessage += Colors.RED + "\nYou lost the brawl and pay " + goldDiff + " gold." + Colors.RESET;
                 hunter.changeGold(-goldDiff);
             }
         }
     }
 
     public String toString() {
-        return "This nice little town is surrounded by " + terrain.getTerrainName() + ".";
+        return "This nice little town is surrounded by " + Colors.CYAN + terrain.getTerrainName() + Colors.RESET + ".";
     }
 
     /**
@@ -139,40 +176,20 @@ public class Town {
      * @return A Terrain object.
      */
     private Terrain getNewTerrain() {
-        int rnd = (int)(Math.random() * 6) + 1;
-        if (rnd == 1) {
+        double rnd = Math.random();
+        if (rnd < .1) {
             return new Terrain("Mountains", "Rope");
-        } else if (rnd == 2) {
+        } else if (rnd < .2) {
             return new Terrain("Ocean", "Boat");
-        } else if (rnd == 3) {
+        } else if (rnd < .4) {
             return new Terrain("Plains", "Horse");
-        } else if (rnd == 4) {
+        } else if (rnd < .6) {
             return new Terrain("Desert", "Water");
-        } else if (rnd == 5) {
+        } else if (rnd < .8){
             return new Terrain("Jungle", "Machete");
         } else {
-            return new Terrain("Marsh", "Boots");
+            return new Terrain("Marsh", "Boot");
         }
-    }
-
-    /**
-     * Determines whether a used item has broken.
-     *
-     * @return true if the item broke.
-     */
-    private String treasureRandom(){
-        String treasure = "";
-        int rnd = (int)(Math.random() * 4) + 1;
-        if(rnd == 1){
-            treasure = "crown";
-        } else if (rnd == 2){
-            treasure = "dust";
-        } else if (rnd == 3){
-            treasure = "gem";
-        } else {
-            treasure = "trophy";
-        }
-        return treasure;
     }
 
     /**
@@ -181,10 +198,41 @@ public class Town {
      * @return true if the item broke.
      */
     private boolean checkItemBreak() {
-        if (easyMode) {
-            return false;
-        }
         double rand = Math.random();
         return (rand < 0.5);
+    }
+
+    public void treasureTime() {
+        if (isSearched) {
+            System.out.println("You already searched this town");
+        } else if (hunter.hasItemInTreasure(treasure)) {
+            isSearched = true;
+            System.out.println("You found a(n) "+treasure + "...which you already have.\nYou half-heartedly rebury it in the dry soil.");
+        } else if ((!treasure.equals("dust") && (!isSearched))) {
+            System.out.println("You found a " + treasure + "!");
+            hunter.addTreasure(treasure);
+            isSearched = true;
+        } else {
+            System.out.println("Dust! It irritates your eyes mockingly.\n");
+        }
+    }
+    public void digForTreasure(Hunter hunter){
+        if (!hunter.hasItemInTreasure("shovel")){
+            System.out.println("Despite how well you think you can, you fail miserably at making any progress digging with your hands.\nYou're going to need something bigger.\n");
+        } else {
+            if (isDug) {
+                System.out.println("The dirt has been completely displaced.\nNo point in digging more.\n");
+            } else {
+                double chance = Math.random();
+                if (chance >= .5) {
+                    int goldFound = (int) (Math.random() * 20 + 1);
+                    hunter.changeGold(goldFound);
+                    System.out.println("Your shovel hits something... gold!\nYou happily add the " + goldFound + " gold to your money sack.\n");
+                } else {
+                    System.out.println("You couldn't find a single thing despite overturning the entire town.\n");
+                }
+                isDug = true;
+            }
+        }
     }
 }

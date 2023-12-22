@@ -5,18 +5,15 @@ import java.util.Scanner;
  * The Shop class also acts as a go between for the Hunter's buyItem() method. <p>
  * This code has been adapted from Ivan Turner's original program -- thank you Mr. Turner!
  */
-
 public class Shop {
     // constants
     private static final int WATER_COST = 2;
     private static final int ROPE_COST = 4;
     private static final int MACHETE_COST = 6;
-    private static final int SHOVEL_COST = 8;
     private static final int HORSE_COST = 12;
-    private static final int BOOTS_COST = 16;
     private static final int BOAT_COST = 20;
-
-
+    private static final int BOOT_COST = 10;
+    private static final int SHOVEL_COST = 8;
 
     // static variables
     private static final Scanner SCANNER = new Scanner(System.in);
@@ -51,14 +48,28 @@ public class Shop {
             System.out.print("What're you lookin' to buy? ");
             String item = SCANNER.nextLine().toLowerCase();
             int cost = checkMarketPrice(item, true);
-            if (cost == 0) {
-                System.out.println("We ain't got none of those.");
+            if (TreasureHunter.SAMURAIMODE || customer.hasItemInKit("sword") && inventory().toLowerCase().contains(item)) {
+                System.out.println("\"Uh... Sir?\"\nYou rob him of his wares.\n");
+                if (customer.hasItemInKit(item)){
+                    System.out.println("You already have this. You discard it on the road. ");
+                } else {
+                    customer.buyItem(item, 0);
+                }
             } else {
-                System.out.print("It'll cost you " + cost + " gold. Buy it (y/n)? ");
-                String option = SCANNER.nextLine().toLowerCase();
+                if (cost == 0 && !item.equals("sword")) {
+                    System.out.println("We ain't got none of those.");
+                } else {
+                    System.out.print("It'll cost you " + cost + " gold. Buy it (y/n)? ");
+                    String option = SCANNER.nextLine().toLowerCase();
 
-                if (option.equals("y")) {
-                    buyItem(item);
+                    if (option.equals("y")) {
+                        if (customer.hasItemInKit(item)){
+                            System.out.println("You already have this. ");
+                        }else {
+                            customer.buyItem(item, cost);
+                            System.out.println("You bought a " + item);
+                        }
+                    }
                 }
             }
         } else {
@@ -73,10 +84,11 @@ public class Shop {
                 String option = SCANNER.nextLine().toLowerCase();
 
                 if (option.equals("y")) {
-                    sellItem(item);
+                    customer.sellItem(item, cost);
                 }
             }
         }
+        System.out.println("You left the shop. \n");
     }
 
     /**
@@ -89,11 +101,13 @@ public class Shop {
         String str = "Water: " + WATER_COST + " gold\n";
         str += "Rope: " + ROPE_COST + " gold\n";
         str += "Machete: " + MACHETE_COST + " gold\n";
-        str += "Shovel: " + SHOVEL_COST + " gold\n";
         str += "Horse: " + HORSE_COST + " gold\n";
-        str += "Boots: " + BOOTS_COST + " gold\n";
         str += "Boat: " + BOAT_COST + " gold\n";
-
+        str += "Boot: " + BOOT_COST + " gold\n";
+        str += "Shovel: " + SHOVEL_COST + " gold\n";
+        if (TreasureHunter.SAMURAIMODE && !customer.hasItemInKit("SWORD")){
+            str += "SWORD: FREE\n";
+        }
         return str;
     }
 
@@ -104,7 +118,7 @@ public class Shop {
      */
     public void buyItem(String item) {
         int costOfItem = checkMarketPrice(item, true);
-        if (customer.buyItem(item, costOfItem)) {
+        if (customer.buyItem(item, costOfItem) && !customer.hasItemInKit("sword")) {
             System.out.println("Ye' got yerself a " + item + ". Come again soon.");
         } else {
             System.out.println("Hmm, either you don't have enough gold or you've already got one of those!");
@@ -155,12 +169,10 @@ public class Shop {
             return MACHETE_COST;
         } else if (item.equals("horse")) {
             return HORSE_COST;
-        } else if (item.equals("boots")) {
-            return BOOTS_COST;
         } else if (item.equals("boat")) {
             return BOAT_COST;
-        } else if (item.equals("shovel")){
-            return SHOVEL_COST;
+        } else if (item.equals("boot")){
+            return BOOT_COST;
         } else {
             return 0;
         }
